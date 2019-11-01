@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import random
 import yaml
 
+REPO_NAME = "george-webb-oxb/test-repo"
 SMUG_ASCII_ART_LIST = ["( ͡ᵔ ͜ʖ ͡ᵔ )", "¯|_(◉‿◉)_|¯", "☜(⌒▽⌒)☞", "(◕‿◕✿)"]
 ANGRY_ASCII_ART_LIST = ["(ノಠ益ಠ)ノ", "(╯°Д°)╯︵/(.□ . |)",
                         "(☞ಠ_ಠ)☞", "(,,#ﾟДﾟ)", "( ﾟДﾟ)＜!!", "(┛ಠ_ಠ)┛彡┻━┻"]
@@ -87,7 +88,7 @@ def main():
     gh = Github(personal_access_token)
 
     # make a repo object
-    repo = gh.get_repo("george-webb-oxb/test-repo")
+    repo = gh.get_repo(REPO_NAME)
 
     # get an object with all pull requests
     pulls = repo.get_pulls(state='open', sort='created', base='master')

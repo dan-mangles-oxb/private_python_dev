@@ -1,5 +1,7 @@
 from github import Github
 
+REPO_NAME = "george-webb-oxb/test-repo"
+
 def reopen_the_pr(pr, CLOSED_LABEL):
     print('reopening the pr')
     comment_message = 'This PR is being reopened'
@@ -36,7 +38,7 @@ def main():
     gh = Github(personal_access_token)
 
     # make a repo object
-    repo = gh.get_repo("george-webb-oxb/test-repo")
+    repo = gh.get_repo(REPO_NAME)
 
     reopen_all_prs(repo, CLOSED_LABEL)
 
