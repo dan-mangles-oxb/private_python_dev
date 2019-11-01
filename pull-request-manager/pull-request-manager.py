@@ -1,9 +1,10 @@
-from github import Github
+from github import Github, GithubException  
 from datetime import datetime, timedelta
 import random
 import yaml
 
 REPO_NAME = "george-webb-oxb/test-repo"
+
 SMUG_ASCII_ART_LIST = ["( ͡ᵔ ͜ʖ ͡ᵔ )", "¯|_(◉‿◉)_|¯", "☜(⌒▽⌒)☞", "(◕‿◕✿)"]
 ANGRY_ASCII_ART_LIST = ["(ノಠ益ಠ)ノ", "(╯°Д°)╯︵/(.□ . |)",
                         "(☞ಠ_ಠ)☞", "(,,#ﾟДﾟ)", "( ﾟДﾟ)＜!!", "(┛ಠ_ಠ)┛彡┻━┻"]
@@ -38,12 +39,9 @@ def mark_as_stale(pr, STALE_LABEL):
 def is_stale_enough_to_close(pr):
     '''check activity in last EXTRA_TIME_BEFORE_CLOSE days, return true if no activity'''
 
-    print("This pr was last updated at ")
-    print(pr.updated_at)
-
+    print("This pr was last updated at {}".format(pr.updated_at))
     time_since_pr_updated = datetime.now() - pr.updated_at
-    print('it has been this much time since update')
-    print(time_since_pr_updated)
+    print('it has been this much time since update'.format(time_since_pr_updated))
 
     if time_since_pr_updated > timedelta(days=params["EXTRA_TIME_BEFORE_CLOSE"]):
         return True
@@ -84,32 +82,38 @@ def main():
     STALE_LABEL = "Older than {} days".format(params["MAX_TIME_SINCE_CREATED"])
     CLOSED_LABEL = "CLOSED AUTOMATICALLY"
 
-    # instantiate a Github object
-    gh = Github(personal_access_token)
+    try:
+        # instantiate a Github object
+        gh = Github(personal_access_token)
 
-    # make a repo object
-    repo = gh.get_repo(REPO_NAME)
+        # make a repo object
+        repo = gh.get_repo(REPO_NAME)
 
-    # get an object with all pull requests
-    pulls = repo.get_pulls(state='open', sort='created', base='master')
+        # get an object with all pull requests
+        pulls = repo.get_pulls(state='open', sort='created', base='master')
 
-    print('This repo has {} open pull requests'.format(pulls.totalCount))
-    # loop through the pull requests
-    for pr in pulls:
+        print('This repo has {} open pull requests'.format(pulls.totalCount))
+        # loop through the pull requests
+        for pr in pulls:
 
-        print('\n\nInvestigating PR: {}'.format(pr.title))
-        if is_stale(pr):
-            # method only executes if not already labelled as stale
-            mark_as_stale(pr, STALE_LABEL)
+            print('\n\nInvestigating PR: {}'.format(pr.title))
+            if is_stale(pr):
+                # method only executes if not already labelled as stale
+                mark_as_stale(pr, STALE_LABEL)
 
-            if is_stale_enough_to_close(pr):
-                close_the_pr(pr, CLOSED_LABEL)
+                if is_stale_enough_to_close(pr):
+                    close_the_pr(pr, CLOSED_LABEL)
+                else:
+                    print('not stale enough to close')
             else:
-                print('not stale enough to close')
-        else:
-            print('not stale')
+                print('not stale')
 
-    print('\nAll open pull requests assessed. Exiting')
+        print('\nAll open pull requests assessed. Exiting')
+
+
+    except Exception as e:
+        print("Github API has returned an error, details below")
+        print(e) # where should this be logged
 
 
 if __name__ == "__main__":
