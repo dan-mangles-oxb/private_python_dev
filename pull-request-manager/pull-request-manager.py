@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 import random
 import yaml
 
-LIST_OF_ASCII_ART = ["-.-", ":3"]
+SMUG_ASCII_ART_LIST = ["( ͡ᵔ ͜ʖ ͡ᵔ )", "¯|_(◉‿◉)_|¯", "☜(⌒▽⌒)☞", "(◕‿◕✿)"]
+ANGRY_ASCII_ART_LIST = ["(ノಠ益ಠ)ノ", "(╯°Д°)╯︵/(.□ . |)",
+                        "(☞ಠ_ಠ)☞", "(,,#ﾟДﾟ)", "( ﾟДﾟ)＜!!", "(┛ಠ_ಠ)┛彡┻━┻"]
 
 
 def is_stale(pr):
@@ -16,7 +18,6 @@ def is_stale(pr):
 
 def mark_as_stale(pr, STALE_LABEL):
     '''comments and labels stale PRs'''
-
     # check if already stale
     for label in pr.labels:
         if label.name == STALE_LABEL:
@@ -25,7 +26,7 @@ def mark_as_stale(pr, STALE_LABEL):
 
     print('posting stale comment')
     comment_message = "Hey @{}! Your PR is more than {} days old :/ If there is no more activity for {} days, we'll close the PR \n\n{}".format(
-        pr.user.login, params["MAX_TIME_SINCE_CREATED"], params["EXTRA_TIME_BEFORE_CLOSE"], random.choice(LIST_OF_ASCII_ART))
+        pr.user.login, params["MAX_TIME_SINCE_CREATED"], params["EXTRA_TIME_BEFORE_CLOSE"], random.choice(ANGRY_ASCII_ART_LIST))
     pr.create_issue_comment(comment_message)
 
     # label this PR as stale
@@ -35,9 +36,6 @@ def mark_as_stale(pr, STALE_LABEL):
 
 def is_stale_enough_to_close(pr):
     '''check activity in last EXTRA_TIME_BEFORE_CLOSE days, return true if no activity'''
-    # # check the PR is already stale
-    # if not is_stale(pr):
-    #     return False
 
     print("This pr was last updated at ")
     print(pr.updated_at)
@@ -51,14 +49,16 @@ def is_stale_enough_to_close(pr):
     return False
 
 
-def close_the_pr(pr):
+def close_the_pr(pr, CLOSED_LABEL):
     '''comments then closes the pr'''
 
     print('closing the pr')
-    comment_message = 'This PR is being automatically closed because it has been stale for {} days'.format(
-        params["EXTRA_TIME_BEFORE_CLOSE"])
+    comment_message = 'This PR is being automatically closed because it has been stale for {} days \n\n{}'.format(
+        params["EXTRA_TIME_BEFORE_CLOSE"], random.choice(SMUG_ASCII_ART_LIST))
     pr.create_issue_comment(comment_message)
 
+    pr.add_to_labels(CLOSED_LABEL)
+    print('labelled as closed')
     pr.edit(state='closed')
     return
 
@@ -81,6 +81,7 @@ def main():
 
     # generate a label based on given max
     STALE_LABEL = "Older than {} days".format(params["MAX_TIME_SINCE_CREATED"])
+    CLOSED_LABEL = "CLOSED AUTOMATICALLY"
 
     # instantiate a Github object
     gh = Github(personal_access_token)
@@ -91,6 +92,7 @@ def main():
     # get an object with all pull requests
     pulls = repo.get_pulls(state='open', sort='created', base='master')
 
+    print('This repo has {} open pull requests'.format(pulls.totalCount))
     # loop through the pull requests
     for pr in pulls:
 
@@ -100,13 +102,13 @@ def main():
             mark_as_stale(pr, STALE_LABEL)
 
             if is_stale_enough_to_close(pr):
-                close_the_pr(pr)
+                close_the_pr(pr, CLOSED_LABEL)
             else:
                 print('not stale enough to close')
         else:
             print('not stale')
 
-    print('all pull requests assessed')
+    print('\nAll open pull requests assessed. Exiting')
 
 
 if __name__ == "__main__":
