@@ -1,2 +1,3 @@
-MAX_TIME_SINCE_CREATED: 30  # days
-EXTRA_TIME_BEFORE_CLOSE: 7  # days
+# Parameter file for the pull-request-manager.py
+MAX_TIME_SINCE_CREATED: 1  # days
+EXTRA_TIME_BEFORE_CLOSE: .00001  # days
