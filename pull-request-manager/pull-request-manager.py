@@ -1,4 +1,4 @@
-from github import Github, GithubException  
+from github import Github, GithubException
 from datetime import datetime, timedelta
 import random
 import yaml
@@ -41,7 +41,7 @@ def is_stale_enough_to_close(pr):
 
     print("This pr was last updated at {}".format(pr.updated_at))
     time_since_pr_updated = datetime.now() - pr.updated_at
-    print('it has been this much time since update'.format(time_since_pr_updated))
+    print('it has been {} since last update'.format(time_since_pr_updated))
 
     if time_since_pr_updated > timedelta(days=params["EXTRA_TIME_BEFORE_CLOSE"]):
         return True
@@ -64,7 +64,7 @@ def close_the_pr(pr, CLOSED_LABEL):
 
 def main():
     # get an access token from file
-    with open("pull-request-manager/access-token.txt", 'r') as access_token_file:
+    with open("access-token.txt", 'r') as access_token_file:
         personal_access_token = access_token_file.readline()
 
     # open the parameters file and copy into a global dict called params
@@ -110,10 +110,9 @@ def main():
 
         print('\nAll open pull requests assessed. Exiting')
 
-
     except Exception as e:
         print("Github API has returned an error, details below")
-        print(e) # where should this be logged
+        print(e)  # where should this be logged
 
 
 if __name__ == "__main__":
