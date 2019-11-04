@@ -29,10 +29,14 @@ def mark_as_stale(pr, STALE_LABEL):
     print('posting stale comment')
     comment_message = "Hey @{}! Your PR is more than {} days old :/ If there is no more activity for {} days, we'll close the PR \n\n{}".format(
         pr.user.login, params["MAX_TIME_SINCE_CREATED"], params["EXTRA_TIME_BEFORE_CLOSE"], random.choice(ANGRY_ASCII_ART_LIST))
-    pr.create_issue_comment(comment_message)
-
-    # label this PR as stale
-    pr.add_to_labels(STALE_LABEL)
+    
+    if params["MODE"] == "READ_ONLY":
+        print("READ ONLY MODE")
+    else:
+        print("Comment on stale message")
+        pr.create_issue_comment(comment_message)
+        # label this PR as stale
+        pr.add_to_labels(STALE_LABEL)
     return
 
 
@@ -54,11 +58,18 @@ def close_the_pr(pr, CLOSED_LABEL):
     print('closing the pr')
     comment_message = 'This PR is being automatically closed because it has been stale for {} days \n\n{}'.format(
         params["EXTRA_TIME_BEFORE_CLOSE"], random.choice(SMUG_ASCII_ART_LIST))
-    pr.create_issue_comment(comment_message)
 
-    pr.add_to_labels(CLOSED_LABEL)
-    print('labelled as closed')
-    pr.edit(state='closed')
+    if params["MODE"] == "READ_ONLY":
+        print("READ ONLY MODE")
+
+    else:
+        pr.create_issue_comment(comment_message)
+        pr.add_to_labels(CLOSED_LABEL)
+        print('labelled as closed')
+
+        if params["MODE"] == "CLOSE_PR":
+            pr.edit(state='closed')
+    
     return
 
 
@@ -73,8 +84,8 @@ def main():
             global params
             params = yaml.load(parameters_file)
             print("Parameter YAML file loaded.")
-            print("params: MAX_TIME_SINCE_CREATED = {}, EXTRA_TIME_BEFORE_CLOSE = {}".format(
-                params["MAX_TIME_SINCE_CREATED"], params["EXTRA_TIME_BEFORE_CLOSE"]))
+            print("params: MAX_TIME_SINCE_CREATED = {}, EXTRA_TIME_BEFORE_CLOSE = {}, MODE = {}".format(
+                params["MAX_TIME_SINCE_CREATED"], params["EXTRA_TIME_BEFORE_CLOSE"], params["MODE"]))
         except yaml.YAMLError as exc:
             print(exc)
 
