@@ -28,7 +28,7 @@ def reopen_all_prs(repo, CLOSED_LABEL):
 
 def main():
     # get an access token from file
-    with open("pull-request-manager/access-token.txt", 'r') as access_token_file:
+    with open("access-token.txt", 'r') as access_token_file:
         personal_access_token = access_token_file.readline()
 
     # generate a label based on given max
