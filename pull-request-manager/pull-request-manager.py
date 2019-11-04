@@ -82,38 +82,36 @@ def main():
     STALE_LABEL = "Older than {} days".format(params["MAX_TIME_SINCE_CREATED"])
     CLOSED_LABEL = "CLOSED AUTOMATICALLY"
 
-    try:
-        # instantiate a Github object
-        gh = Github(personal_access_token)
+    # instantiate a Github object
+    gh = Github(personal_access_token)
 
-        # make a repo object
-        repo = gh.get_repo(REPO_NAME)
+    # make a repo object
+    repo = gh.get_repo(REPO_NAME)
 
-        # get an object with all pull requests
-        pulls = repo.get_pulls(state='open', sort='created', base='master')
+    # get an object with all pull requests
+    pulls = repo.get_pulls(state='open', sort='created', base='master')
 
-        print('This repo has {} open pull requests'.format(pulls.totalCount))
-        # loop through the pull requests
-        for pr in pulls:
+    print('This repo has {} open pull requests'.format(pulls.totalCount))
+    # loop through the pull requests
+    for pr in pulls:
+        print('\n\nInvestigating PR: {}'.format(pr.title))
+        if is_stale(pr):
+            # method only executes if not already labelled as stale
+            mark_as_stale(pr, STALE_LABEL)
 
-            print('\n\nInvestigating PR: {}'.format(pr.title))
-            if is_stale(pr):
-                # method only executes if not already labelled as stale
-                mark_as_stale(pr, STALE_LABEL)
-
-                if is_stale_enough_to_close(pr):
-                    close_the_pr(pr, CLOSED_LABEL)
-                else:
-                    print('not stale enough to close')
+            if is_stale_enough_to_close(pr):
+                close_the_pr(pr, CLOSED_LABEL)
             else:
-                print('not stale')
+                print('not stale enough to close')
+        else:
+            print('not stale')
 
-        print('\nAll open pull requests assessed. Exiting')
-
-    except Exception as e:
-        print("Github API has returned an error, details below")
-        print(e)  # where should this be logged
+    print('\nAll open pull requests assessed. Exiting')
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print("Github API has returned an error, details below")
+        print(e)  # where should this be logged
