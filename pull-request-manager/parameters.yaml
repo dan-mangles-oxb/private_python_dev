@@ -1,6 +1,11 @@
+# Names of Repos
+REPO_NAMES: 
+  - "george-webb-oxb/test-repo"
+  - "dan-mangles-oxb/api_test_repo"
+
 # Parameter file for the pull-request-manager.py
 MAX_TIME_SINCE_CREATED: 1  # days
-EXTRA_TIME_BEFORE_CLOSE: 0.00001  # days
+EXTRA_TIME_BEFORE_CLOSE: 7  # days
 
 # Modes: "READ_ONLY" / "COMMENTS_ONLY" / "CLOSE_PR"
 MODE: "READ_ONLY"
