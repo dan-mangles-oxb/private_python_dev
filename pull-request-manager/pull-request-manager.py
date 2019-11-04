@@ -104,7 +104,7 @@ def main():
     # open the parameters file and copy into a global dict called params
     with open("pull-request-manager/parameters.yaml", 'r') as parameters_file:
         global params
-        params = yaml.load(parameters_file)  # fixme
+        params = yaml.load(parameters_file, Loader=yaml.SafeLoader)
         logging.debug("Parameter YAML file loaded.")
         logging.info(
             "Config Parameters:\nMAX_TIME_SINCE_CREATED = {}\nEXTRA_TIME_BEFORE_CLOSE = {}\nMODE = {}\nREPO_NAMES = {}"
