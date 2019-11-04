@@ -1,4 +1,4 @@
-from github import Github
+from github import Github, GithubException
 from datetime import datetime, timedelta
 import logging
 import random
@@ -103,19 +103,14 @@ def main():
 
     # open the parameters file and copy into a global dict called params
     with open("pull-request-manager/parameters.yaml", 'r') as parameters_file:
-        try:
-            global params
-            params = yaml.load(parameters_file)
-            logging.debug("Parameter YAML file loaded.")
-            logging.info(
-                "Config Parameters:\nMAX_TIME_SINCE_CREATED = {}\nEXTRA_TIME_BEFORE_CLOSE = {}\nMODE = {}\nREPO_NAMES = {}"
-                .format(params["MAX_TIME_SINCE_CREATED"],
-                        params["EXTRA_TIME_BEFORE_CLOSE"], params["MODE"],
-                        params["REPO_NAMES"]))
-        except yaml.YAMLError as exc:
-            logging.critical("YAML File Error: {}".format(exc))
-            raise Exception(
-                "YAML File Error, check logs for more information.")
+        global params
+        params = yaml.load(parameters_file)  # fixme
+        logging.debug("Parameter YAML file loaded.")
+        logging.info(
+            "Config Parameters:\nMAX_TIME_SINCE_CREATED = {}\nEXTRA_TIME_BEFORE_CLOSE = {}\nMODE = {}\nREPO_NAMES = {}"
+            .format(params["MAX_TIME_SINCE_CREATED"],
+                    params["EXTRA_TIME_BEFORE_CLOSE"], params["MODE"],
+                    params["REPO_NAMES"]))
 
     # generate a label based on given max
     STALE_LABEL = "Older than {} days".format(params["MAX_TIME_SINCE_CREATED"])
@@ -155,6 +150,15 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except yaml.YAMLError as ye:
+        logging.critical("YAML File Error: {}".format(ye))
+        raise Exception(
+            "YAML File Error, check logs for more information.")
+    except GithubException as ge:
+        logging.critical("GithubException: {}".format(ge))
+        raise Exception(
+            "Github API has returned an error, check logs for more information.")
     except Exception as e:
-        print("Github API has returned an error, details below")
-        print(e)  # where should this be logged
+        logging.critical("Exception: {}".format(e))
+        raise Exception(
+            'Some exception thrown, check logs for more information.')
