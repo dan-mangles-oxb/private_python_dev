@@ -1,6 +1,7 @@
 from github import Github
 from datetime import datetime, timedelta
 import logging
+import os
 import random
 import yaml
 
@@ -90,38 +91,37 @@ def close_the_pr(pr, CLOSED_LABEL):
 
 
 def main():
-    # Set up logging
-    time_now = datetime.now()
-    logging.basicConfig(filename='./logs/example ({}).log'.format(time_now),
-                        format="%(message)s",
-                        level=logging.INFO)
-    logging.info("Ran on {}".format(time_now))
-
-    # get an access token from file
-    with open("access-token.txt", 'r') as access_token_file:
-        personal_access_token = access_token_file.readline()
-
     # open the parameters file and copy into a global dict called params
     with open("pull-request-manager/parameters.yaml", 'r') as parameters_file:
-        try:
-            global params
-            params = yaml.load(parameters_file)
-            logging.debug("Parameter YAML file loaded.")
-            logging.info(
-                "Config Parameters:\nMAX_TIME_SINCE_CREATED = {}\nEXTRA_TIME_BEFORE_CLOSE = {}\nMODE = {}\nREPO_NAMES = {}"
-                .format(params["MAX_TIME_SINCE_CREATED"],
-                        params["EXTRA_TIME_BEFORE_CLOSE"], params["MODE"],
-                        params["REPO_NAMES"]))
-        except yaml.YAMLError as exc:
-            logging.critical("YAML File Error: {}".format(exc))
-            raise Exception(
-                "YAML File Error, check logs for more information.")
+        global params
+        params = yaml.load(parameters_file, Loader=yaml.SafeLoader)
+
+    # Set up logging
+    if not os.path.exists(params["LOG_PATH"]):
+        os.mkdir(params["LOG_PATH"])
+
+    time_now = datetime.now()
+    logging.basicConfig(
+        filename='{}/github-pr-bot-log-({}).log'.format(params["LOG_PATH"],time_now),
+        format="%(message)s",
+        level=logging.INFO)
+    logging.info("Ran on {}".format(time_now))
+
+    logging.info("Log folder path: {}".format(params["LOG_PATH"]))
+    logging.info(
+        "Config Parameters:\nMAX_TIME_SINCE_CREATED = {}\nEXTRA_TIME_BEFORE_CLOSE = {}\nMODE = {}\nREPO_NAMES = {}"
+        .format(params["MAX_TIME_SINCE_CREATED"],
+                params["EXTRA_TIME_BEFORE_CLOSE"], params["MODE"],
+                params["REPO_NAMES"]))
+    logging.info("")
 
     # generate a label based on given max
     STALE_LABEL = "Older than {} days".format(params["MAX_TIME_SINCE_CREATED"])
     CLOSED_LABEL = "CLOSED AUTOMATICALLY"
 
-    logging.info("")
+    # get an access token from file
+    with open("access-token.txt", 'r') as access_token_file:
+        personal_access_token = access_token_file.readline()
 
     # instantiate a Github object
     gh = Github(personal_access_token)
@@ -140,21 +140,21 @@ def main():
             logging.debug('Investigating PR: {}'.format(pr.title))
             if is_stale(pr):
                 if mark_as_stale(pr, STALE_LABEL) is False:
-
                     if is_stale_enough_to_close(pr):
                         close_the_pr(pr, CLOSED_LABEL)
                     else:
-                        print('not stale enough to close')
+                        logging.debug('Not stale enough to close')
             else:
-                print('not stale')
+                logging.debug('Not stale')
             logging.info("")
 
-    logging.info('\nAll open pull requests assessed. Exiting')
+    logging.info('All open pull requests assessed. Exiting')
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print("Github API has returned an error, details below")
-        print(e)  # where should this be logged
+        logging.warning("")
+        logging.warning("Bot as crashed :(")
+        logging.warning(e)

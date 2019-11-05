@@ -9,3 +9,6 @@ EXTRA_TIME_BEFORE_CLOSE: 7  # days
 
 # Modes: "READ_ONLY" / "COMMENTS_ONLY" / "CLOSE_PR"
 MODE: "READ_ONLY"
+
+# Path to log folder
+LOG_PATH: "./logs"
